@@ -1,0 +1,22 @@
+{
+    "name": "liuyuanjun/yii2-softdelete",
+    "description": "Soft delete trait for Yii2.",
+    "type": "library",
+    "require": {
+        "php": ">=7.0",
+        "yiisoft/yii2": "^2.0"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "LiuYuanjun",
+            "email": "6879391@qq.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "liuyuanjun\\yii2\\softdelete\\": "src/"
+        }
+    }
+}
