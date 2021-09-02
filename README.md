@@ -57,7 +57,7 @@ or run in terminal:
     
     //+++++ OR +++++
     
-    class Model2 extends \liuyuanjun\yii2\softdelete\ActiveRecord
+    class Model2 extends \liuyuanjun\yii2\softdelete\SoftDeleteActiveRecord
     {
         public static function getIsDeletedAttribute(): string
         {
