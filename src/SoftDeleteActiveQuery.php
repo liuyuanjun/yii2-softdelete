@@ -3,13 +3,15 @@
 namespace liuyuanjun\yii2\softdelete;
 
 
+use yii\db\ActiveQuery;
+
 /**
- * Class ActiveQuery
+ * Class SoftDeleteActiveQuery
  * This is the ActiveQuery class for soft delete.
  *
  * @author  Yuanjun.Liu <6879391@qq.com>
  */
-class ActiveQuery extends \yii\db\ActiveQuery
+class SoftDeleteActiveQuery extends ActiveQuery
 {
     public $withTrashed = false;
     public $onlyTrashed = false;
@@ -20,7 +22,7 @@ class ActiveQuery extends \yii\db\ActiveQuery
      * @return $this
      * @author Yuanjun.Liu <6879391@qq.com>
      */
-    public function withTrashed(bool $value = true): ActiveQuery
+    public function withTrashed(bool $value = true): SoftDeleteActiveQuery
     {
         $this->withTrashed = $value;
         return $this;
@@ -32,7 +34,7 @@ class ActiveQuery extends \yii\db\ActiveQuery
      * @return $this
      * @author Yuanjun.Liu <6879391@qq.com>
      */
-    public function onlyTrashed(bool $value = true): ActiveQuery
+    public function onlyTrashed(bool $value = true): SoftDeleteActiveQuery
     {
         $this->onlyTrashed = $value;
         return $this;
@@ -73,7 +75,7 @@ class ActiveQuery extends \yii\db\ActiveQuery
                 list(, $relation, $alias) = $matches;
                 $name = $relation;
                 $callback = function ($query) use ($callback, $alias, $pQuery) {
-                    /* @var $query ActiveQuery|\yii\db\ActiveQuery */
+                    /* @var $query SoftDeleteActiveQuery|ActiveQuery */
                     $query->alias($alias);
                     if (empty($pQuery->onlyTrashed) && empty($pQuery->withTrashed) && $query->modelClass && method_exists($query->modelClass, 'getIsDeletedAttribute')) {
                         $query->andOnCondition([$query->getAlias() . '.' . $query->modelClass::getIsDeletedAttribute() => 0]);

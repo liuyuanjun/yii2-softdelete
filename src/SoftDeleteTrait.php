@@ -48,9 +48,9 @@ trait SoftDeleteTrait
      * {@inheritdoc}
      * @author Yuanjun.Liu <6879391@qq.com>
      */
-    public static function find(): ActiveQuery
+    public static function find(): SoftDeleteActiveQuery
     {
-        return new ActiveQuery(get_called_class());
+        return new SoftDeleteActiveQuery(get_called_class());
     }
 
     /**
