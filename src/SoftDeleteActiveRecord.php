@@ -8,7 +8,7 @@ namespace liuyuanjun\yii2\softdelete;
  *
  * @author  Yuanjun.Liu <6879391@qq.com>
  */
-class ActiveRecord extends \yii\db\ActiveRecord
+class SoftDeleteActiveRecord extends \yii\db\ActiveRecord
 {
     use SoftDeleteTrait;
 }

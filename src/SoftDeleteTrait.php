@@ -22,16 +22,6 @@ use yii\db\StaleObjectException;
 trait SoftDeleteTrait
 {
 
-    public function init()
-    {
-        parent::init();
-        //检查find方法是否被覆写
-        if (!(($query = static::find()) instanceof ActiveQuery)) {
-            throw new Exception(static::class . '::find 不支持软删，请使用 ' . ActiveQuery::class . ' 或其子类');
-        }
-        unset($query);
-    }
-
     /**
      * 标记已删除字段名
      * @return string
@@ -58,7 +48,7 @@ trait SoftDeleteTrait
      * {@inheritdoc}
      * @author Yuanjun.Liu <6879391@qq.com>
      */
-    public static function find()
+    public static function find(): ActiveQuery
     {
         return new ActiveQuery(get_called_class());
     }
@@ -92,7 +82,7 @@ trait SoftDeleteTrait
     public function delete($force = false)
     {
         if (!$this->isTransactional(self::OP_DELETE)) {
-            return $this->deleteInternal();
+            return $this->deleteInternal($force);
         }
         $transaction = static::getDb()->beginTransaction();
         try {

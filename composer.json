@@ -17,6 +17,9 @@
     "autoload": {
         "psr-4": {
             "liuyuanjun\\yii2\\softdelete\\": "src/"
-        }
+        },
+        "files": [
+            "src/bootstrap.php"
+        ]
     }
 }
