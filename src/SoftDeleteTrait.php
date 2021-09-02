@@ -2,7 +2,10 @@
 
 namespace liuyuanjun\yii2\softdelete;
 
+use Yii;
+use yii\db\Exception;
 use yii\db\Expression;
+use yii\db\StaleObjectException;
 
 /**
  * Trait SoftDelete 软删
@@ -18,6 +21,16 @@ use yii\db\Expression;
  */
 trait SoftDeleteTrait
 {
+
+    public function init()
+    {
+        parent::init();
+        //检查find方法是否被覆写
+        if (!(($query = static::find()) instanceof ActiveQuery)) {
+            throw new Exception(static::class . '::find 不支持软删，请使用 ' . ActiveQuery::class . ' 或其子类');
+        }
+        unset($query);
+    }
 
     /**
      * 标记已删除字段名
@@ -54,6 +67,100 @@ trait SoftDeleteTrait
      * {@inheritdoc}
      * @author Yuanjun.Liu <6879391@qq.com>
      */
+    public function update($runValidation = true, $attributeNames = null)
+    {
+        if (($isDeletedAttr = static::getIsDeletedAttribute()) && $this->$isDeletedAttr <> 0) {
+//            Yii::info('Model已被软删，无法更新.', __METHOD__);
+            return false;
+        }
+        return parent::update($runValidation, $attributeNames);
+    }
+
+    /**
+     * force delete
+     * @author Yuanjun.Liu <6879391@qq.com>
+     */
+    public function forceDelete()
+    {
+        return $this->delete(true);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Yuanjun.Liu <6879391@qq.com>
+     */
+    public function delete($force = false)
+    {
+        if (!$this->isTransactional(self::OP_DELETE)) {
+            return $this->deleteInternal();
+        }
+        $transaction = static::getDb()->beginTransaction();
+        try {
+            $result = $this->deleteInternal($force);
+            if ($result === false) {
+                $transaction->rollBack();
+            } else {
+                $transaction->commit();
+            }
+            return $result;
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            throw $e;
+        } catch (\Throwable $e) {
+            $transaction->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Yuanjun.Liu <6879391@qq.com>
+     */
+    protected function deleteInternal($force = false)
+    {
+        if (!$this->beforeDelete()) {
+            return false;
+        }
+
+        // we do not check the return value of deleteAll() because it's possible
+        // the record is already deleted in the database and thus the method will return 0
+        $condition = $this->getOldPrimaryKey(true);
+        $lock = $this->optimisticLock();
+        if ($lock !== null) {
+            $condition[$lock] = $this->$lock;
+        }
+        $result = $force ? parent::deleteAll($condition) : static::deleteAll($condition);
+        if ($lock !== null && !$result) {
+            throw new StaleObjectException('The object being deleted is outdated.');
+        }
+        $this->setOldAttributes(null);
+        $this->afterDelete();
+
+        return $result;
+    }
+
+    /**
+     * force delete all
+     * @author Yuanjun.Liu <6879391@qq.com>
+     */
+    public static function forceDeleteAll($condition = null, $params = [])
+    {
+        return parent::deleteAll($condition, $params);
+    }
+
+    /**
+     * force update all
+     * @author Yuanjun.Liu <6879391@qq.com>
+     */
+    public static function forceUpdateAll($attributes, $condition = '', $params = [])
+    {
+        return parent::updateAll($attributes, $condition, $params);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Yuanjun.Liu <6879391@qq.com>
+     */
     public static function deleteAll($condition = null, $params = [])
     {
         $isDeletedAttr = static::getIsDeletedAttribute();
@@ -66,7 +173,6 @@ trait SoftDeleteTrait
         $command->update(static::tableName(), $data, $condition, $params);
         return $command->execute();
     }
-
 
     /**
      * {@inheritdoc}

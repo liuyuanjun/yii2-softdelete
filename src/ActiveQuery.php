@@ -11,7 +11,32 @@ namespace liuyuanjun\yii2\softdelete;
  */
 class ActiveQuery extends \yii\db\ActiveQuery
 {
-    private $_softDeleteWhereIsAdded = false;
+    public $withTrashed = false;
+    public $onlyTrashed = false;
+
+    /**
+     * 包含已经软删的记录
+     * @param bool $value
+     * @return $this
+     * @author Yuanjun.Liu <6879391@qq.com>
+     */
+    public function withTrashed(bool $value = true): ActiveQuery
+    {
+        $this->withTrashed = $value;
+        return $this;
+    }
+
+    /**
+     * 只查找已经软删的记录
+     * @param bool $value
+     * @return $this
+     * @author Yuanjun.Liu <6879391@qq.com>
+     */
+    public function onlyTrashed(bool $value = true): ActiveQuery
+    {
+        $this->onlyTrashed = $value;
+        return $this;
+    }
 
     /**
      * {@inheritdoc}
@@ -19,7 +44,13 @@ class ActiveQuery extends \yii\db\ActiveQuery
      */
     public function createCommand($db = null)
     {
-        $this->addSoftDeleteWhere();
+        if ($this->modelClass && method_exists($this->modelClass, 'getIsDeletedAttribute')) {
+            if ($this->onlyTrashed) {
+                $this->andWhere(['<>', $this->getTableNameAndAlias()[1] . '.' . $this->modelClass::getIsDeletedAttribute(), 0]);
+            } elseif (!$this->withTrashed) {
+                $this->andWhere([$this->getTableNameAndAlias()[1] . '.' . $this->modelClass::getIsDeletedAttribute() => 0]);
+            }
+        }
         return parent::createCommand($db);
     }
 
@@ -29,6 +60,7 @@ class ActiveQuery extends \yii\db\ActiveQuery
      */
     public function joinWith($with, $eagerLoading = true, $joinType = 'LEFT JOIN')
     {
+        $pQuery = $this;
         $relations = [];
         foreach ((array)$with as $name => $callback) {
             if (is_int($name)) {
@@ -40,11 +72,12 @@ class ActiveQuery extends \yii\db\ActiveQuery
                 // relation is defined with an alias, adjust callback to apply alias
                 list(, $relation, $alias) = $matches;
                 $name = $relation;
-                $callback = function ($query) use ($callback, $alias) {
+                $callback = function ($query) use ($callback, $alias, $pQuery) {
                     /* @var $query ActiveQuery|\yii\db\ActiveQuery */
                     $query->alias($alias);
-                    if ($query->modelClass && method_exists($query->modelClass, 'getIsDeletedAttribute'))
+                    if (empty($pQuery->onlyTrashed) && empty($pQuery->withTrashed) && $query->modelClass && method_exists($query->modelClass, 'getIsDeletedAttribute')) {
                         $query->andOnCondition([$query->getAlias() . '.' . $query->modelClass::getIsDeletedAttribute() => 0]);
+                    }
                     if ($callback !== null) {
                         call_user_func($callback, $query);
                     }
@@ -69,7 +102,7 @@ class ActiveQuery extends \yii\db\ActiveQuery
     public function via($relationName, callable $callable = null)
     {
         $relation = $this->primaryModel->getRelation($relationName);
-        if ($relation->modelClass && method_exists($relation->modelClass, 'getIsDeletedAttribute'))
+        if (!$this->onlyTrashed && !$this->withTrashed && $relation->modelClass && method_exists($relation->modelClass, 'getIsDeletedAttribute'))
             $relation->andOnCondition([$relation->getAlias() . '.' . $relation->modelClass::getIsDeletedAttribute() => 0]);
         $callableUsed = $callable !== null;
         $this->via = [$relationName, $relation, $callableUsed];
@@ -78,19 +111,6 @@ class ActiveQuery extends \yii\db\ActiveQuery
         }
 
         return $this;
-    }
-
-    /**
-     * 添加软删 where
-     * @date   2021/8/18 17:51
-     * @author Yuanjun.Liu <6879391@qq.com>
-     */
-    public function addSoftDeleteWhere()
-    {
-        if (!$this->_softDeleteWhereIsAdded && $this->modelClass && method_exists($this->modelClass, 'getIsDeletedAttribute')) {
-            $this->andWhere([$this->getTableNameAndAlias()[1] . '.' . $this->modelClass::getIsDeletedAttribute() => 0]);
-            $this->_softDeleteWhereIsAdded = true;
-        }
     }
 
     /**
