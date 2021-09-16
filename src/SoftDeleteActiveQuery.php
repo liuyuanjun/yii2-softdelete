@@ -84,6 +84,16 @@ class SoftDeleteActiveQuery extends ActiveQuery
                         call_user_func($callback, $query);
                     }
                 };
+            } else {
+                $callback = function ($query) use ($callback) {
+                    /* @var $query SoftDeleteActiveQuery|ActiveQuery */
+                    if (empty($pQuery->onlyTrashed) && empty($pQuery->withTrashed) && $query->modelClass && method_exists($query->modelClass, 'getIsDeletedAttribute')) {
+                        $query->andOnCondition([$query->getAlias() . '.' . $query->modelClass::getIsDeletedAttribute() => 0]);
+                    }
+                    if ($callback !== null) {
+                        call_user_func($callback, $query);
+                    }
+                };
             }
 
             if ($callback === null) {
