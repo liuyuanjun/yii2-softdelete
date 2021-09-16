@@ -44,7 +44,7 @@ class SoftDeleteActiveQuery extends ActiveQuery
      * {@inheritdoc}
      * @author Yuanjun.Liu <6879391@qq.com>
      */
-    public function createCommand($db = null)
+    public function prepare($builder)
     {
         if ($this->modelClass && method_exists($this->modelClass, 'getIsDeletedAttribute')) {
             if ($this->onlyTrashed) {
@@ -53,7 +53,7 @@ class SoftDeleteActiveQuery extends ActiveQuery
                 $this->andWhere([$this->getTableNameAndAlias()[1] . '.' . $this->modelClass::getIsDeletedAttribute() => 0]);
             }
         }
-        return parent::createCommand($db);
+        return parent::prepare($builder);
     }
 
     /**

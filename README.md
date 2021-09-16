@@ -1,13 +1,11 @@
 # Yii2 软删 yii2-softdelete
 Soft delete trait for Yii2.
 
-> 不影响数据表中唯一键设置，可正常使用Model的 find、delete、save、hasOne、hasMany、via 等方法
+> 不保留原硬删方法，直接覆写原方法，个人认为如果数据表使用了软删就没有必要在程序中保留硬删，这可能会导致混乱，如果需要硬删，应该走数据变更的方式，并留下执行记录。
 > 
-> Unique keys will not conflict. You can use the model methods as usual, find、delete、save、hasOne、hasMany、via etc.
-
-> 不保留原硬删方法，直接覆写
+> 避免了很多软删数据表唯一键设置冲突的问题，设置唯一索引需要将 is_deleted 字段加入，作联合唯一
 > 
-> Original query/delete/update method will be overwritten.
+> 可正常使用Model的 find、delete、save、hasOne、hasMany、via 等方法
 
 ## 安装 Installation
 
