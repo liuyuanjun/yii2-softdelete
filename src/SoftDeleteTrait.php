@@ -57,6 +57,18 @@ trait SoftDeleteTrait
      * {@inheritdoc}
      * @author Yuanjun.Liu <6879391@qq.com>
      */
+    public function insert($runValidation = true, $attributes = null)
+    {
+        if ($isDeletedAttr = static::getIsDeletedAttribute()) {
+            $this->$isDeletedAttr = 0;
+        }
+        return parent::insert($runValidation, $attributes);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @author Yuanjun.Liu <6879391@qq.com>
+     */
     public function update($runValidation = true, $attributeNames = null)
     {
         if (($isDeletedAttr = static::getIsDeletedAttribute()) && $this->$isDeletedAttr <> 0) {
