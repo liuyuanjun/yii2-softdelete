@@ -3,7 +3,6 @@
 namespace liuyuanjun\yii2\softdelete;
 
 use Yii;
-use yii\db\Exception;
 use yii\db\Expression;
 use yii\db\StaleObjectException;
 
@@ -35,14 +34,14 @@ trait SoftDeleteTrait
 
     /**
      * 标记已删除字段默认值
-     * 请使用  0  null  ''  3个值中的一个，并注意主键不可为这几个值
-     * @return int|string|null
+     * 请使用  0  ''  2个值中的一个，并注意主键不可为这2个值
+     * @return int|string
      * @date  2022/10/10 10:46
-     * @auther liuyuanjun
+     * @auther Yuanjun.Liu <6879391@qq.com>
      */
     public static function getIsDeletedDefault()
     {
-        return 0;
+        return static::getTableSchema()->getColumn(static::getIsDeletedAttribute())->phpType === 'integer' ? 0 : '';
     }
 
     /**

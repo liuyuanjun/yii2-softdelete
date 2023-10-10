@@ -49,11 +49,7 @@ class SoftDeleteActiveQuery extends ActiveQuery
         if ($this->modelClass && method_exists($this->modelClass, 'getIsDeletedAttribute')) {
             $default = $this->modelClass::getIsDeletedDefault();
             if ($this->onlyTrashed) {
-                if ($default === null) {
-                    $this->andWhere(['IS NOT', $this->getTableNameAndAlias()[1] . '.' . $this->modelClass::getIsDeletedAttribute(), null]);
-                } else {
-                    $this->andWhere(['<>', $this->getTableNameAndAlias()[1] . '.' . $this->modelClass::getIsDeletedAttribute(), $default]);
-                }
+                $this->andWhere(['<>', $this->getTableNameAndAlias()[1] . '.' . $this->modelClass::getIsDeletedAttribute(), $default]);
             } elseif (!$this->withTrashed) {
                 $this->andWhere([$this->getTableNameAndAlias()[1] . '.' . $this->modelClass::getIsDeletedAttribute() => $default]);
             }
