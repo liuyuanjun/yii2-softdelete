@@ -34,6 +34,18 @@ trait SoftDeleteTrait
     }
 
     /**
+     * 标记已删除字段默认值
+     * 请使用  0  null  ''  3个值中的一个，并注意主键不可为这几个值
+     * @return int|string|null
+     * @date  2022/10/10 10:46
+     * @auther liuyuanjun
+     */
+    public static function getIsDeletedDefault()
+    {
+        return 0;
+    }
+
+    /**
      * 删除时间字段名
      * @return string
      * @date   2020/11/25 20:45
@@ -60,7 +72,7 @@ trait SoftDeleteTrait
     public function init()
     {
         if ($isDeletedAttr = static::getIsDeletedAttribute())
-            $this->$isDeletedAttr = 0;
+            $this->$isDeletedAttr = static::getIsDeletedDefault();
         parent::init();
     }
 
@@ -70,8 +82,8 @@ trait SoftDeleteTrait
      */
     public function update($runValidation = true, $attributeNames = null)
     {
-        if (($isDeletedAttr = static::getIsDeletedAttribute()) && $this->$isDeletedAttr <> 0) {
-//            Yii::info('Model已被软删，无法更新.', __METHOD__);
+        if (($isDeletedAttr = static::getIsDeletedAttribute()) && $this->$isDeletedAttr) {
+            //            Yii::info('Model已被软删，无法更新.', __METHOD__);
             return false;
         }
         return parent::update($runValidation, $attributeNames);
@@ -165,7 +177,9 @@ trait SoftDeleteTrait
     public static function deleteAll($condition = null, $params = [])
     {
         $isDeletedAttr = static::getIsDeletedAttribute();
-        $condition = $condition ? ['and', [$isDeletedAttr => 0], $condition] : [$isDeletedAttr => 0];
+        $condition = $condition 
+        ? ['and', [$isDeletedAttr => static::getIsDeletedDefault()], $condition] 
+        : [$isDeletedAttr => static::getIsDeletedDefault()];
         $command = static::getDb()->createCommand();
         $data = [$isDeletedAttr => new Expression(static::primaryKey()[0])];
         if ($deleteTimeAttr = static::getDeleteTimeAttribute()) {
@@ -182,7 +196,9 @@ trait SoftDeleteTrait
     public static function updateAll($attributes, $condition = '', $params = []): int
     {
         $isDeletedAttr = static::getIsDeletedAttribute();
-        $condition = $condition ? ['and', [$isDeletedAttr => 0], $condition] : [$isDeletedAttr => 0];
+        $condition = $condition 
+        ? ['and', [$isDeletedAttr => static::getIsDeletedDefault()], $condition] 
+        : [$isDeletedAttr => static::getIsDeletedDefault()];
         return parent::updateAll($attributes, $condition, $params);
     }
 
@@ -193,8 +209,9 @@ trait SoftDeleteTrait
     public static function updateAllCounters($counters, $condition = '', $params = []): int
     {
         $isDeletedAttr = static::getIsDeletedAttribute();
-        $condition = $condition ? ['and', [$isDeletedAttr => 0], $condition] : [$isDeletedAttr => 0];
+        $condition = $condition 
+        ? ['and', [$isDeletedAttr => static::getIsDeletedDefault()], $condition] 
+        : [$isDeletedAttr => static::getIsDeletedDefault()];
         return parent::updateAllCounters($counters, $condition, $params);
     }
-
 }

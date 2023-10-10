@@ -47,10 +47,15 @@ class SoftDeleteActiveQuery extends ActiveQuery
     public function prepare($builder)
     {
         if ($this->modelClass && method_exists($this->modelClass, 'getIsDeletedAttribute')) {
+            $default = $this->modelClass::getIsDeletedDefault();
             if ($this->onlyTrashed) {
-                $this->andWhere(['<>', $this->getTableNameAndAlias()[1] . '.' . $this->modelClass::getIsDeletedAttribute(), 0]);
+                if ($default === null) {
+                    $this->andWhere(['IS NOT', $this->getTableNameAndAlias()[1] . '.' . $this->modelClass::getIsDeletedAttribute(), null]);
+                } else {
+                    $this->andWhere(['<>', $this->getTableNameAndAlias()[1] . '.' . $this->modelClass::getIsDeletedAttribute(), $default]);
+                }
             } elseif (!$this->withTrashed) {
-                $this->andWhere([$this->getTableNameAndAlias()[1] . '.' . $this->modelClass::getIsDeletedAttribute() => 0]);
+                $this->andWhere([$this->getTableNameAndAlias()[1] . '.' . $this->modelClass::getIsDeletedAttribute() => $default]);
             }
         }
         return parent::prepare($builder);
@@ -78,7 +83,7 @@ class SoftDeleteActiveQuery extends ActiveQuery
                     /* @var $query SoftDeleteActiveQuery|ActiveQuery */
                     $query->alias($alias);
                     if (empty($pQuery->onlyTrashed) && empty($pQuery->withTrashed) && $query->modelClass && method_exists($query->modelClass, 'getIsDeletedAttribute')) {
-                        $query->andOnCondition([$query->getAlias() . '.' . $query->modelClass::getIsDeletedAttribute() => 0]);
+                        $query->andOnCondition([$query->getAlias() . '.' . $query->modelClass::getIsDeletedAttribute() => $query->modelClass::getIsDeletedDefault()]);
                     }
                     if ($callback !== null) {
                         call_user_func($callback, $query);
@@ -88,7 +93,7 @@ class SoftDeleteActiveQuery extends ActiveQuery
                 $callback = function ($query) use ($callback) {
                     /* @var $query SoftDeleteActiveQuery|ActiveQuery */
                     if (empty($pQuery->onlyTrashed) && empty($pQuery->withTrashed) && $query->modelClass && method_exists($query->modelClass, 'getIsDeletedAttribute')) {
-                        $query->andOnCondition([$query->getAlias() . '.' . $query->modelClass::getIsDeletedAttribute() => 0]);
+                        $query->andOnCondition([$query->getAlias() . '.' . $query->modelClass::getIsDeletedAttribute() => $query->modelClass::getIsDeletedDefault()]);
                     }
                     if ($callback !== null) {
                         call_user_func($callback, $query);
@@ -115,7 +120,7 @@ class SoftDeleteActiveQuery extends ActiveQuery
     {
         $relation = $this->primaryModel->getRelation($relationName);
         if (!$this->onlyTrashed && !$this->withTrashed && $relation->modelClass && method_exists($relation->modelClass, 'getIsDeletedAttribute'))
-            $relation->andOnCondition([$relation->getAlias() . '.' . $relation->modelClass::getIsDeletedAttribute() => 0]);
+            $relation->andOnCondition([$relation->getAlias() . '.' . $relation->modelClass::getIsDeletedAttribute() => $relation->modelClass::getIsDeletedDefault()]);
         $callableUsed = $callable !== null;
         $this->via = [$relationName, $relation, $callableUsed];
         if ($callable !== null) {
