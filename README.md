@@ -1,10 +1,10 @@
 # Yii2 软删 yii2-softdelete
+
 Soft delete trait for Yii2.
 
-> 不保留原硬删方法，直接覆写原方法，个人认为如果数据表使用了软删就没有必要在程序中保留硬删，这可能会导致混乱，如果需要硬删，应该走数据变更的方式，并留下执行记录。
-> 
-> 避免了很多软删数据表唯一键设置冲突的问题，设置唯一索引需要将 is_deleted 字段加入，作联合唯一
-> 
+> 替换了 yii\db\ActiveRecord 的 delete() 方法，软删除时将 is_deleted 字段设置为主键字段的值，而不是删除数据
+> 增加了forceDelete()方法，硬删除数据
+> 避免了很多软删数据表唯一键设置冲突的问题，设置唯一索引需要将 is_deleted 字段加入，作联合唯一索引
 > 可正常使用Model的 find、delete、save、hasOne、hasMany、via 等方法
 
 ## 安装 Installation
@@ -28,6 +28,7 @@ or run in terminal:
 ## 用法 Usage
 
 ### 在Model类中引入  Use the trait in your model.
+
 ```php
 
     use liuyuanjun\yii2\softdelete\SoftDeleteTrait;
