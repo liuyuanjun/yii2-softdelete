@@ -41,7 +41,8 @@ trait SoftDeleteTrait
      */
     public static function getIsDeletedDefault()
     {
-        return static::getTableSchema()->getColumn(static::getIsDeletedAttribute())->phpType === 'integer' ? 0 : '';
+        return in_array(static::getTableSchema()->getColumn(static::getIsDeletedAttribute())->type,
+            ['int', 'bigint', 'mediumint', 'smallint', 'tinyint']) ? 0 : '';
     }
 
     /**
@@ -176,9 +177,9 @@ trait SoftDeleteTrait
     public static function deleteAll($condition = null, $params = [])
     {
         $isDeletedAttr = static::getIsDeletedAttribute();
-        $condition = $condition 
-        ? ['and', [$isDeletedAttr => static::getIsDeletedDefault()], $condition] 
-        : [$isDeletedAttr => static::getIsDeletedDefault()];
+        $condition = $condition
+            ? ['and', [$isDeletedAttr => static::getIsDeletedDefault()], $condition]
+            : [$isDeletedAttr => static::getIsDeletedDefault()];
         $command = static::getDb()->createCommand();
         $data = [$isDeletedAttr => new Expression(static::primaryKey()[0])];
         if ($deleteTimeAttr = static::getDeleteTimeAttribute()) {
@@ -195,9 +196,9 @@ trait SoftDeleteTrait
     public static function updateAll($attributes, $condition = '', $params = []): int
     {
         $isDeletedAttr = static::getIsDeletedAttribute();
-        $condition = $condition 
-        ? ['and', [$isDeletedAttr => static::getIsDeletedDefault()], $condition] 
-        : [$isDeletedAttr => static::getIsDeletedDefault()];
+        $condition = $condition
+            ? ['and', [$isDeletedAttr => static::getIsDeletedDefault()], $condition]
+            : [$isDeletedAttr => static::getIsDeletedDefault()];
         return parent::updateAll($attributes, $condition, $params);
     }
 
@@ -208,9 +209,9 @@ trait SoftDeleteTrait
     public static function updateAllCounters($counters, $condition = '', $params = []): int
     {
         $isDeletedAttr = static::getIsDeletedAttribute();
-        $condition = $condition 
-        ? ['and', [$isDeletedAttr => static::getIsDeletedDefault()], $condition] 
-        : [$isDeletedAttr => static::getIsDeletedDefault()];
+        $condition = $condition
+            ? ['and', [$isDeletedAttr => static::getIsDeletedDefault()], $condition]
+            : [$isDeletedAttr => static::getIsDeletedDefault()];
         return parent::updateAllCounters($counters, $condition, $params);
     }
 }
