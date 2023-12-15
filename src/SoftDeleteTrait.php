@@ -42,7 +42,7 @@ trait SoftDeleteTrait
     public static function getIsDeletedDefault()
     {
         return in_array(static::getTableSchema()->getColumn(static::getIsDeletedAttribute())->type,
-            ['int', 'bigint', 'mediumint', 'smallint', 'tinyint']) ? 0 : '';
+            ['int', 'integer', 'bigint', 'mediumint', 'smallint', 'tinyint']) ? 0 : '';
     }
 
     /**
